@@ -5,7 +5,7 @@ import { insertContactSubmissionSchema } from "@shared/schema";
 import { z } from "zod";
 import { PayFast } from 'node-payfast';
 import axios from 'axios';
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "./lib/supabaseClient";
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import apicache from 'apicache';
