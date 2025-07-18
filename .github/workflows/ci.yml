@@ -16,4 +16,14 @@ jobs:
         with:
           node-version: 18
       - run: npm install
-      - run: npm run test 
+      - name: Lint
+        run: |
+          if [ -f package.json ] && grep -q '"lint"' package.json; then
+            npm run lint
+          else
+            echo "No lint script found, skipping lint."
+          fi
+      - name: Build
+        run: npm run build
+      - name: Test
+        run: npm run test 

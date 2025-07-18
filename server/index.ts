@@ -4,6 +4,11 @@ import { setupVite, serveStatic, log } from "./vite";
 import { getDueSubscriptions, generateInvoice, getOverdueInvoices, sendLatePaymentNotification, runDataRetentionJob } from "./storage";
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import * as Sentry from "@sentry/node";
+Sentry.init({
+  dsn: "YOUR_SENTRY_DSN",
+  tracesSampleRate: 1.0,
+});
 
 const app = express();
 app.use(cors());
@@ -56,6 +61,9 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
+
+  // Add Sentry error handler after all routes
+  app.use(Sentry.Handlers.errorHandler());
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
