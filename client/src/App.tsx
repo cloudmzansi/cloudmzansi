@@ -9,9 +9,26 @@ import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfService from "@/pages/terms-of-service";
 import PortalPage from "@/pages/portal";
 import DashboardPage from "@/pages/dashboard";
-import { useEffect } from "react";
+import LoginPage from "@/pages/login";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { getCurrentUserWithRole } from "@/lib/supabaseClient";
+import { getCurrentUserWithRole, supabase } from "@/lib/supabaseClient";
+
+function AuthGuard({ children }: { children: JSX.Element }) {
+  const [user, setUser] = useState<any>(null);
+  const [, setLocation] = useLocation();
+  useEffect(() => {
+    getCurrentUserWithRole().then(u => {
+      if (!u) {
+        setLocation("/login");
+      } else {
+        setUser(u);
+      }
+    });
+  }, [setLocation]);
+  if (!user) return null;
+  return children;
+}
 
 function Router() {
   return (
@@ -19,25 +36,23 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms-of-service" component={TermsOfService} />
-      <Route path="/portal" component={PortalPage} />
-      <Route path="/dashboard" component={DashboardPage} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/portal" component={() => (
+        <AuthGuard>
+          <PortalPage />
+        </AuthGuard>
+      )} />
+      <Route path="/dashboard" component={() => (
+        <AuthGuard>
+          <DashboardPage />
+        </AuthGuard>
+      )} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    getCurrentUserWithRole().then(user => {
-      if (!user) return;
-      if (user.role === "admin") {
-        setLocation("/dashboard");
-      } else {
-        setLocation("/portal");
-      }
-    });
-  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
