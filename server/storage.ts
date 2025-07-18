@@ -1,15 +1,18 @@
 import { contactSubmissions, type ContactSubmission, type InsertContactSubmission } from "@shared/schema";
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import { createClient } from '@supabase/supabase-js';
+import pkg from 'pg';
+const { Pool } = pkg;
+// Remove direct import of createClient and use the shared supabase client
+import { supabase } from './lib/supabaseClient';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool);
 
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Remove direct instantiation of supabase client
+// export const supabase = createClient(
+//   process.env.SUPABASE_URL!,
+//   process.env.SUPABASE_SERVICE_ROLE_KEY!
+// );
 
 export interface IStorage {
   createContactSubmission(submission: InsertContactSubmission): Promise<ContactSubmission>;
