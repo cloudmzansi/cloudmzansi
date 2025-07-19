@@ -14,20 +14,28 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { getCurrentUserWithRole, supabase } from "@/lib/supabaseClient";
 
-function AuthGuard({ children }: { children: JSX.Element }) {
-  const [user, setUser] = useState<any>(null);
-  const [, setLocation] = useLocation();
+function useUser() {
+  const [user, setUser] = useState<any | null>(undefined);
   useEffect(() => {
-    getCurrentUserWithRole().then(u => {
-      if (!u) {
-        setLocation("/login");
-      } else {
-        setUser(u);
-      }
-    });
-  }, [setLocation]);
-  if (!user) return null;
-  return children;
+    getCurrentUserWithRole().then(setUser);
+  }, []);
+  return user;
+}
+
+function AdminGuard({ children }: { children: (user: any) => JSX.Element }) {
+  const user = useUser();
+  if (user === undefined) return null;
+  if (!user) return children(null); // Guest mode
+  if (user.role !== 'admin') return <div className="min-h-screen flex items-center justify-center text-xl text-red-600">Unauthorized: Admins only</div>;
+  return children(user);
+}
+
+function ClientGuard({ children }: { children: (user: any) => JSX.Element }) {
+  const user = useUser();
+  if (user === undefined) return null;
+  if (!user) return children(null); // Guest mode
+  if (user.role === 'admin') return <div className="min-h-screen flex items-center justify-center text-xl text-red-600">Unauthorized: Clients only</div>;
+  return children(user);
 }
 
 function Router() {
@@ -38,14 +46,14 @@ function Router() {
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/login" component={LoginPage} />
       <Route path="/portal" component={() => (
-        <AuthGuard>
-          <PortalPage />
-        </AuthGuard>
+        <ClientGuard>
+          {(user) => <PortalPage user={user} guest={!user} />}
+        </ClientGuard>
       )} />
       <Route path="/dashboard" component={() => (
-        <AuthGuard>
-          <DashboardPage />
-        </AuthGuard>
+        <AdminGuard>
+          {(user) => <DashboardPage user={user} guest={!user} />}
+        </AdminGuard>
       )} />
       <Route component={NotFound} />
     </Switch>

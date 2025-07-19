@@ -12,7 +12,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export async function getCurrentUserWithRole() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
-  // Assume user role is stored in user.user_metadata.role or in a public profile table
-  const role = user.user_metadata?.role || 'client';
+  // Always fetch role from user_profiles
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+  const role = profile?.role || 'client';
   return { ...user, role };
 } 
