@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
@@ -6,6 +7,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,6 +16,23 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return;
+    }
+    // Wait for session, then fetch role and redirect
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      // Fetch role from user_profiles
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      if (profile?.role === "admin") {
+        setLocation("/dashboard");
+      } else {
+        setLocation("/portal");
+      }
     }
     setLoading(false);
   };
