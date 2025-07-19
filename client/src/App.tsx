@@ -25,7 +25,7 @@ function useUser() {
 function AdminGuard({ children }: { children: (user: any) => JSX.Element }) {
   const user = useUser();
   if (user === undefined) return null;
-  if (!user) return children(null); // Guest mode
+  if (!user) return <LoginPage />; // Show login page for guests
   if (user.role !== 'admin') return <div className="min-h-screen flex items-center justify-center text-xl text-red-600">Unauthorized: Admins only</div>;
   return children(user);
 }
@@ -33,7 +33,7 @@ function AdminGuard({ children }: { children: (user: any) => JSX.Element }) {
 function ClientGuard({ children }: { children: (user: any) => JSX.Element }) {
   const user = useUser();
   if (user === undefined) return null;
-  if (!user) return children(null); // Guest mode
+  if (!user) return <LoginPage />; // Show login page for guests
   if (user.role === 'admin') return <div className="min-h-screen flex items-center justify-center text-xl text-red-600">Unauthorized: Clients only</div>;
   return children(user);
 }

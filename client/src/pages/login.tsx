@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { useLocation } from "wouter";
-import { supabase, getCurrentUserWithRole } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 
-const LoginPage = () => {
-  const [, setLocation] = useLocation();
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,76 +14,51 @@ const LoginPage = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
-      setLoading(false);
-      return;
     }
-    // Get user role and redirect
-    const user = await getCurrentUserWithRole();
-    if (user?.role === "admin") {
-      setLocation("/dashboard");
-    } else {
-      setLocation("/portal");
-    }
+    setLoading(false);
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f7f7fa" }}>
-      <form
-        onSubmit={handleLogin}
-        style={{
-          background: "#fff",
-          padding: 32,
-          borderRadius: 12,
-          boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-          minWidth: 320,
-          maxWidth: 360,
-          width: "100%"
-        }}
-      >
-        <h2 style={{ marginBottom: 24, textAlign: "center", fontWeight: 700 }}>Sign In</h2>
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="email" style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Email</label>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-white">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 md:p-12 animate-fade-in">
+        <div className="flex flex-col items-center mb-8">
+          <div className="text-3xl font-bold text-green-700 mb-2">Cloud<span className="text-black">Mzansi</span></div>
+          <div className="text-lg text-gray-600 font-medium mb-2">Sign in to your account</div>
+          <div className="text-sm text-gray-400">Access your client portal or admin dashboard</div>
+        </div>
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <input
-            id="email"
             type="email"
+            className="border border-gray-200 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-green-200"
+            placeholder="Email address"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
-            style={{ width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ddd" }}
             autoFocus
+            disabled={loading}
           />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="password" style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Password</label>
           <input
-            id="password"
             type="password"
+            className="border border-gray-200 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-green-200"
+            placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
-            style={{ width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ddd" }}
+            disabled={loading}
           />
+          <button
+            type="submit"
+            className="bg-green-700 hover:bg-green-800 text-white font-semibold rounded px-4 py-2 transition-all"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+          {error && <div className="text-red-600 text-sm text-center mt-2">{error}</div>}
+        </form>
+        <div className="mt-8 text-xs text-gray-400 text-center">
+          &copy; {new Date().getFullYear()} Cloud Mzansi. All rights reserved.
         </div>
-        {error && <div style={{ color: "#d32f2f", marginBottom: 12, textAlign: "center" }}>{error}</div>}
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: 12,
-            borderRadius: 6,
-            background: "#2d6cdf",
-            color: "#fff",
-            fontWeight: 600,
-            border: "none",
-            cursor: loading ? "not-allowed" : "pointer"
-          }}
-        >
-          {loading ? "Signing in..." : "Sign In"}
-        </button>
-      </form>
+      </div>
     </div>
   );
-};
-
-export default LoginPage; 
+} 
